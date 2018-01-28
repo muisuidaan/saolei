@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style type="text/css">
+			body,p{
+				margin: 0;
+				padding:0;
+			}
+			.clearFix{
+				zoom:1;
+			}
+			.clearFix:after{
+				content: "";
+				clear:both;
+				display: block;
+			}
+			p{
+				margin-left:500px;
+			}
+			#box{
+				width:460px;
+				height:460px;
+				margin:30px auto;
+				position: relative;
+				top:0;
+				left:0;
+			}
+			#wrap{
+				width:450px;
+				height:450px;
+				border:5px solid #000;
+				position: relative;
+				top:0;
+				left:0;
+			}
+			#wrap div{
+				width:50px;
+				height:50px;
+				border:1px solid #000;
+				box-sizing: border-box;
+				float:left;
+				color:#000;
+				font:20px/50px "微软雅黑";
+				text-align: center;
+			}
+			#click{
+				position: relative;
+				top:-460px;
+				left:0;
+				border:5px solid #000;
+			}
+			#click div{
+				width:50px;
+				height:50px;
+				background-color: darkcyan;
+				border:1px solid #fff;
+				box-sizing: border-box;
+				float: left;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<div id="wrap" class="clearFix">
+			</div>
+			<div id="click">
+		</div>
+			
+			
+		</div>
+		<p>开始游戏</p>
+		<p>时间：00:00</p>
+		<p>雷个数：10</p>
+		<script type="text/javascript">
+			var wrap = document.getElementById("wrap");
+			var click = document.getElementById("click");
+			var ps = document.getElementsByTagName("p");
+			
+			str = "";
+			for(var i=0;i<81;i++){
+				str += "<div></div>";
+			}
+			wrap.innerHTML = str;
+			
+			click.innerHTML = str;
+			
+			var arr = [];
+			function ran(){
+				return parseInt(Math.random()*81);
+			}
+			function inArray(v,a){
+				for(var i=0;i<a.length;i++){
+					if(v==a[i]){
+						return i;
+					}
+				}
+				return -1;
+			}
+			
+			
+			
+			function creatNum(a){
+				if( arr.length == 10 ){
+					return; 
+				}
+				var n = ran();
+				if( inArray( n,arr ) != -1 ){
+					creatNum(a);
+				}else{
+					if(n==a){
+						console.log(a);
+						creatNum(a);
+					}else{
+						arr.push( n );
+						creatNum(a);
+					}
+				}
+			}
+			
+			
+			var divs = wrap.getElementsByTagName("div");
+			for(var i=0;i<divs.length;i++){
+				divs[i].num =0;
+				divs[i].index = i;
+			}
+			
+			function createLei(){
+				for(var i=0;i<arr.length;i++){
+					divs[arr[i]].style.backgroundColor = "green";
+					//所有的雷身上绑定开关 开关置为真
+					divs[arr[i]].onoff = true;
+					if((arr[i])%9!=8){
+						divs[arr[i]+1].num++;
+					}
+					if(arr[i]<71&&arr[i]%9!=8){
+						divs[arr[i]+10].num++;
+					}
+					if(arr[i]<72){
+						divs[arr[i]+9].num++;
+					}
+					if(arr[i]<72&&arr[i]%9!=0){
+						divs[arr[i]+8].num++;
+					}
+					if(arr[i]%9!=0){
+						divs[arr[i]-1].num++;
+					}
+					if(arr[i]>8&&arr[i]%9!=0){
+						divs[arr[i]-10].num++;
+					}
+					if(arr[i]>8){
+						divs[arr[i]-9].num++;
+					}
+					if(arr[i]>8&&arr[i]%9!=8){
+						divs[arr[i]-8].num++;
+					}
+				}
+				
+				for(var i=0;i<divs.length;i++){
+					if(divs[i].num!=0&&!divs[i].onoff){
+						divs[i].innerHTML = divs[i].num;
+					}
+					
+				}
+			}
+			
+			function start(){
+				for(var i=0;i<clickDivs.length;i++){
+					clickDivs[i].style.opacity = 1;
+					clickDivs[i].index = i;
+					clickDivs[i].onclick = function(){
+						clicknum++;
+						if(clicknum==1){
+							//alert(1);
+							arr= [];
+							//第一次点击的时候埋雷  点击的这个盒子不可以是雷 如果是的话 重新生成数组
+							creatNum(this.index);
+							createLei();
+							console.log(arr);
+						}
+						this.style.opacity = 0;
+						if(divs[this.index].num==0&&!divs[this.index].onoff){
+							//点击的为空白 可以向四周挖开
+							tab(this);
+						}
+						if(divs[this.index].onoff){
+							alert("游戏结束");
+							for(var i=0;i<clickDivs.length;i++){
+								clickDivs[i].style.opacity = 0;
+							}
+						}
+					}
+				}
+			}
+			var clickDivs = click.getElementsByTagName("div");
+			var clicknum = 0;
+			start();
+			ps[0].onclick = function(){
+				
+				start();
+			}
+				
+			//挖雷函数
+			function tab(obj){
+				obj.style.opacity = 0;
+				obj.beiwakai = true;
+				if( divs[obj.index].num != 0 ){
+		    		return
+		    	}
+				setTimeout(function(){
+					
+					if( clickDivs[ obj.index+1 ] && !clickDivs[ obj.index+1 ].beiwakai ){
+						if(obj.index%9!=8){
+							tab( clickDivs[ obj.index+1 ] );
+						}
+						
+					}
+					if( clickDivs[ obj.index-1 ] && !clickDivs[ obj.index-1 ].beiwakai ){
+						if(obj.index%9!=0){
+							tab( clickDivs[ obj.index-1 ] );
+						}
+						
+					}
+					if( clickDivs[ obj.index-9 ] && !clickDivs[ obj.index-9 ].beiwakai ){
+						if(obj.index>8){
+							tab( clickDivs[ obj.index-9 ] );
+						}
+					}
+					if( clickDivs[ obj.index+9 ] && !clickDivs[ obj.index+9 ].beiwakai ){
+						if(obj.index<72){
+							tab( clickDivs[ obj.index+9 ] );
+						}
+					}
+					if( clickDivs[ obj.index+8 ] && !clickDivs[ obj.index+8 ].beiwakai ){
+						if(obj.index<72&&obj.index%9!=0){
+							tab( clickDivs[ obj.index+8 ] );
+						}
+					}
+					if( clickDivs[ obj.index-8 ] && !clickDivs[ obj.index-8 ].beiwakai ){
+						if(obj.index>8&&obj.index%9!=8){
+							tab( clickDivs[ obj.index-8 ] );
+						}
+					}
+
+					if( clickDivs[ obj.index-10 ] && !clickDivs[ obj.index-10 ].beiwakai ){
+						if(obj.index>8&&obj.index%9!=0){
+							tab( clickDivs[ obj.index-10 ] );
+						}
+					}
+					if( clickDivs[ obj.index+10 ] && !clickDivs[ obj.index+10 ].beiwakai ){
+						if(obj.index<72&&obj.index%9!=8){
+							tab( clickDivs[ obj.index+10 ] );
+						}
+					}
+			    	
+		    	},25)
+			}
+			
+		</script>
+	</body>
+</html>
